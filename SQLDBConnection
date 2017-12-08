@@ -1,0 +1,87 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using MySql.Data.MySqlClient;
+using System.Web.Configuration;
+
+namespace nextgateproj.Models
+{
+    public class ConnectionModel
+    {
+        public string connection = "LocalMySqlServer";
+        public bool FindUser(NGUserModel model)
+        {
+            using (MySqlConnection con = new MySqlConnection(@WebConfigurationManager.ConnectionStrings[connection].ToString()))
+            {
+                con.Open();
+                using (MySqlCommand command = new MySqlCommand("", con))
+                {
+                    command.CommandText = "select * from ng_users where username=@username and password=@password;";
+                    command.Parameters.AddWithValue("@username", model.Name);
+                    command.Parameters.AddWithValue("@password", model.Password);
+                    MySqlDataReader reader = command.ExecuteReader();
+                    if (reader.Read())
+                    {
+                        if (!reader.IsDBNull(reader.GetOrdinal("username")))
+                            return true;
+                        else
+                            return false;
+                    }
+                    return false;
+                }
+            }
+        }
+
+        public List<NGSingerModel> FindSinger(String name)
+        {
+            var model = new List<NGSingerModel>();
+            using (MySqlConnection con = new MySqlConnection(@WebConfigurationManager.ConnectionStrings[connection].ToString()))
+            {
+                con.Open();
+                using (MySqlCommand command = new MySqlCommand("", con))
+                {
+                    command.CommandText = "select * from ng_singers where name=@name;";
+                    command.Parameters.AddWithValue("@name", name);
+                    MySqlDataReader reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        var data = new NGSingerModel();
+                        data.name = name;
+                        data.dob = reader["dob"].ToString();
+                        data.sex = reader["sex"].ToString();
+                        model.Add(data);
+                    }
+                }
+            }
+            return model;
+        }
+
+        public List<NGAlbumModel> FindAlbum(String title)
+        {
+            var model = new List<NGAlbumModel>();
+            using (MySqlConnection con = new MySqlConnection(@WebConfigurationManager.ConnectionStrings[connection].ToString()))
+            {
+                con.Open();
+                using (MySqlCommand command = new MySqlCommand("", con))
+                {
+                    command.CommandText = "select ng_singers.name,ng_albums.album_name,ng_albums.release_year,ng_albums.record_company "
+                                        + "from ng_albums inner join ng_singers on ng_singers.ng_singers_id=ng_albums.ng_singers_id "
+                                        + "where ng_albums.album_name=@name;";
+                    command.Parameters.AddWithValue("@name", title);
+                    MySqlDataReader reader = command.ExecuteReader();
+                    if (reader.Read())
+                    {
+                        var data = new NGAlbumModel();
+                        data.album = title;
+                        data.singer = reader["name"].ToString();
+                        data.company = reader["record_company"].ToString();
+                        data.year = reader["release_year"].ToString();
+                        model.Add(data);
+                    }
+                }
+            }
+            return model;
+        }
+    }
+}
