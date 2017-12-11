@@ -1,0 +1,6 @@
+<connectionStrings>
+    <remove name="LocalMySqlServer" />
+    <add name="LocalMySqlServer" connectionString="server=localhost;user id=ng_user;database=ng_music;password=ng" providerName="MySql.Data.MySqlClient" />
+</connectionStrings></configuration>
+
+Can use Trusted_Connection=True; instead of a user id and password
